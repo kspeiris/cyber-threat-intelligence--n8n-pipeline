@@ -17,7 +17,7 @@
 
 ## 📌 Overview
 
-This project builds a **production-grade Cyber Threat Intelligence (CTI)** system that automatically discovers, classifies, and visualises security vulnerabilities. At its core, the pipeline is orchestrated by **n8n** — a powerful open-source workflow automation engine — which schedules data collection every 6 hours, aggregates threat data from public intelligence feeds, and dispatches real-time Telegram push notifications to the security team.
+This project builds a **production-grade Cyber Threat Intelligence (CTI)** system that automatically discovers, classifies, and visualises security vulnerabilities. At its core, the pipeline is orchestrated by **n8n** - a powerful open-source workflow automation engine which schedules data collection every 6 hours, aggregates threat data from public intelligence feeds, and dispatches real-time Telegram push notifications to the security team.
 
 The collected data is stored in a normalised **PostgreSQL** schema and served through a **FastAPI** REST API, while analysts consume the intelligence through a sleek, **glassmorphic dark-mode Streamlit dashboard** powered by interactive Plotly charts.
 
@@ -109,7 +109,7 @@ flowchart TB
 
 ## ⚙️ n8n Workflow Automation
 
-The n8n engine is the **central nervous system** of this pipeline. The workflow runs on a 6-hour schedule and executes the full data collection lifecycle without any manual intervention.
+The n8n engine is the **central nervous system** of this pipeline. The workflow runs on a 6 hour schedule and executes the full data collection lifecycle without any manual intervention.
 
 ### 🔄 Workflow Steps (`n8n-workflows/threat_intelligence_workflow.json`)
 
@@ -127,7 +127,7 @@ The n8n engine is the **central nervous system** of this pipeline. The workflow 
 2. Go to **Workflows → Import from File**
 3. Import `n8n-workflows/threat_intelligence_workflow.json`
 4. Add your Telegram credentials in the Telegram node
-5. Activate the workflow — it runs on autopilot from here!
+5. Activate the workflow it runs on autopilot from here!
 
 ---
 
