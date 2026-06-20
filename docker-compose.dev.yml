@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: threat_db_dev
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: threat_intelligence
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - threat_network_dev
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: threat_backend_dev
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres:5432/threat_intelligence
+      DEBUG: "true"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    networks:
+      - threat_network_dev
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile.dev
+    container_name: threat_dashboard_dev
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    networks:
+      - threat_network_dev
+    environment:
+      API_URL: http://backend:8000
+    volumes:
+      - ./dashboard:/app
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: threat_n8n_dev
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:5678/
+      N8N_ENCRYPTION_KEY: dev-encryption-key-change-this
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_dev_data:/home/node/.n8n
+      - ./n8n-workflows:/home/node/.n8n/workflows
+    depends_on:
+      - postgres
+    networks:
+      - threat_network_dev
+
+volumes:
+  postgres_dev_data:
+  n8n_dev_data:
+
+networks:
+  threat_network_dev:
+    driver: bridge
