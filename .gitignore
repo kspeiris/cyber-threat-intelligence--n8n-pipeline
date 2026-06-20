@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+dist/
+build/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# Data
+data/
+*.db
+*.sqlite3
+*.log
+logs/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Project specific
+n8n-data/
+n8n-backup/
+postgres_data/
+postgres_dev_data/
+n8n_dev_data/
