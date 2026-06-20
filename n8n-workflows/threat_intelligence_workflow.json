@@ -1,0 +1,99 @@
+{
+  "name": "Threat Intelligence Collection",
+  "nodes": [
+    {
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300],
+      "parameters": {
+        "rule": {
+          "interval": [{"hours": 6}]
+        }
+      }
+    },
+    {
+      "name": "Collect Threats",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8000/api/threats/collect",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "position": [650, 300],
+      "parameters": {
+        "options": {
+          "amount": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    {
+      "name": "Collect Indicators",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "http://backend:8000/api/indicators/collect",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1050, 300],
+      "parameters": {
+        "method": "GET",
+        "url": "http://backend:8000/api/reports/daily"
+      }
+    },
+    {
+      "name": "Telegram Notification",
+      "type": "n8n-nodes-base.telegram",
+      "position": [1250, 300],
+      "parameters": {
+        "chatId": "{{$credentials.chatId}}",
+        "text": "✅ Threat Intelligence Collection Completed!\n\nLatest threats have been collected and analyzed.\nCheck the dashboard for details.",
+        "additionalFields": {}
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{"node": "Collect Threats", "type": "main", "index": 0}]]
+    },
+    "Collect Threats": {
+      "main": [[{"node": "Wait 30s", "type": "main", "index": 0}]]
+    },
+    "Wait 30s": {
+      "main": [[{"node": "Collect Indicators", "type": "main", "index": 0}]]
+    },
+    "Collect Indicators": {
+      "main": [[{"node": "Generate Report", "type": "main", "index": 0}]]
+    },
+    "Generate Report": {
+      "main": [[{"node": "Telegram Notification", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "1",
+  "triggerCount": 0
+}
