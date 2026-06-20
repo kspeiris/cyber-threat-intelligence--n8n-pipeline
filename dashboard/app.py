@@ -17,23 +17,67 @@ st.set_page_config(
 # API base URL
 API_URL = "http://localhost:8000/api"
 
-# Custom CSS
+# Custom Advanced UI CSS
 st.markdown("""
     <style>
-    .big-font {
-        font-size:20px !important;
-        font-weight: bold;
+    /* Premium Glassmorphism Metrics */
+    div[data-testid="stMetric"] {
+        background-color: rgba(30, 34, 45, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .metric-card {
-        background-color: #f0f2f6;
-        padding: 15px;
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(123, 97, 255, 0.2);
+        border: 1px solid rgba(123, 97, 255, 0.4);
+    }
+    
+    /* Headers & Text */
+    h1, h2, h3 {
+        color: #e2e8f0;
+        font-weight: 600 !important;
+        letter-spacing: -0.02em;
+    }
+    
+    /* Buttons */
+    .stButton>button {
+        background: linear-gradient(135deg, #7b61ff 0%, #5a3ce8 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(123, 97, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        background: linear-gradient(135deg, #8d76ff 0%, #6e52eb 100%);
+        box-shadow: 0 6px 15px rgba(123, 97, 255, 0.5);
+        transform: translateY(-1px);
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background-color: rgba(30, 34, 45, 0.8) !important;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Table styling */
+    .stDataFrame {
         border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    .severity-critical { color: #dc3545; }
-    .severity-high { color: #fd7e14; }
-    .severity-medium { color: #ffc107; }
-    .severity-low { color: #28a745; }
+
+    .severity-critical { color: #ff4b4b; font-weight: bold; }
+    .severity-high { color: #ff8c00; font-weight: bold; }
+    .severity-medium { color: #ffd166; font-weight: bold; }
+    .severity-low { color: #06d6a0; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -79,24 +123,16 @@ if page == "Dashboard":
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
             st.metric("Total Threats", stats["total_threats"])
-            st.markdown('</div>', unsafe_allow_html=True)
         
         with col2:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
             st.metric("Critical Threats", stats["critical"], delta_color="inverse")
-            st.markdown('</div>', unsafe_allow_html=True)
         
         with col3:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
             st.metric("New Today", stats["new_today"])
-            st.markdown('</div>', unsafe_allow_html=True)
         
         with col4:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
             st.metric("Active Alerts", "5", delta="2")
-            st.markdown('</div>', unsafe_allow_html=True)
     
     # Charts row
     col1, col2 = st.columns(2)
@@ -104,38 +140,59 @@ if page == "Dashboard":
     with col1:
         st.subheader("Threat Severity Distribution")
         if stats:
-            severity_data = {
-                "Severity": ["Critical", "High", "Medium", "Low"],
-                "Count": [stats["critical"], stats["high"], stats["medium"], stats["low"]]
-            }
-            df = pd.DataFrame(severity_data)
-            
-            colors = ["#dc3545", "#fd7e14", "#ffc107", "#28a745"]
-            fig = px.pie(
-                df,
-                values="Count",
-                names="Severity",
-                color="Severity",
-                color_discrete_sequence=colors
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            total_severity = stats.get("critical", 0) + stats.get("high", 0) + stats.get("medium", 0) + stats.get("low", 0)
+            if total_severity > 0:
+                severity_data = {
+                    "Severity": ["Critical", "High", "Medium", "Low"],
+                    "Count": [stats["critical"], stats["high"], stats["medium"], stats["low"]]
+                }
+                df = pd.DataFrame(severity_data)
+                
+                colors = ["#ff4b4b", "#ff8c00", "#ffd166", "#06d6a0"]
+                fig = px.pie(
+                    df,
+                    values="Count",
+                    names="Severity",
+                    color="Severity",
+                    color_discrete_sequence=colors,
+                    template="plotly_dark",
+                    hole=0.4
+                )
+                fig.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    margin=dict(t=30, b=10, l=10, r=10)
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No threat severity data available. Collect threats to view distribution.")
     
     with col2:
         st.subheader("Threat Trends (30 Days)")
-        if trends and trends["labels"]:
+        if trends and trends.get("labels"):
             fig = go.Figure()
             fig.add_trace(go.Scatter(
                 x=trends["labels"],
                 y=trends["values"],
                 mode="lines+markers",
-                name="Threats"
+                name="Threats",
+                line=dict(color="#7b61ff", width=3),
+                marker=dict(size=8, color="#5a3ce8"),
+                fill='tozeroy',
+                fillcolor='rgba(123, 97, 255, 0.1)'
             ))
             fig.update_layout(
                 xaxis_title="Date",
                 yaxis_title="Number of Threats",
-                hovermode='x'
+                hovermode='x',
+                template="plotly_dark",
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                margin=dict(t=30, b=10, l=10, r=10)
             )
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No trend data available. Click 'Collect New Threats' on the Threats page.")
     
     # Recent threats table
     st.subheader("Recent Threats")
@@ -159,6 +216,8 @@ if page == "Dashboard":
             df.style.applymap(color_severity, subset=["Severity"]),
             use_container_width=True
         )
+    else:
+        st.info("No recent threats found. Try collecting new threats.")
 
 elif page == "Threats":
     st.title("🔍 Threat Management")
@@ -202,6 +261,8 @@ elif page == "Threats":
             file_name=f"threats_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
+    else:
+        st.info("No threats found in the database. Click 'Collect New Threats' to start.")
 
 elif page == "Indicators":
     st.title("🎯 Indicators of Compromise")
@@ -248,6 +309,8 @@ elif page == "Indicators":
             ))
         
         st.dataframe(df, use_container_width=True)
+    else:
+        st.info("No indicators found. Click 'Collect Indicators' to fetch data.")
 
 elif page == "Alerts":
     st.title("🔔 Security Alerts")
@@ -295,6 +358,8 @@ elif page == "Alerts":
                                 st.success("Alert resolved!")
                                 st.rerun()
                 st.divider()
+    else:
+        st.info("No active alerts found.")
 
 elif page == "Reports":
     st.title("📋 Reports")
@@ -362,3 +427,5 @@ elif page == "AI Analysis":
                             st.markdown(f"- {rec}")
                 else:
                     st.error("Failed to analyze threat")
+    else:
+        st.info("No threats available for AI analysis. Please collect threats first.")
