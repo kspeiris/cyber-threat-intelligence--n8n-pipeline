@@ -266,3 +266,11 @@ def generate_weekly_report(db: Session) -> schemas.ReportResponse:
         metrics=db_report.metrics,
         recommendations=db_report.recommendations
     )
+
+def get_reports(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100
+) -> List[models.Report]:
+    """Get all generated reports"""
+    return db.query(models.Report).order_by(desc(models.Report.generated_at)).offset(skip).limit(limit).all()

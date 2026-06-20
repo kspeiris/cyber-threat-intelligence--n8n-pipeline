@@ -76,14 +76,6 @@ async def get_threats(
     threats = crud.get_threats(db, skip=skip, limit=limit, severity=severity)
     return threats
 
-@app.get("/api/threats/{threat_id}", response_model=schemas.ThreatResponse)
-async def get_threat(threat_id: int, db: Session = Depends(get_db)):
-    """Get a specific threat by ID"""
-    threat = crud.get_threat(db, threat_id=threat_id)
-    if not threat:
-        raise HTTPException(status_code=404, detail="Threat not found")
-    return threat
-
 @app.get("/api/threats/statistics")
 async def get_threat_statistics(db: Session = Depends(get_db)):
     """Get threat statistics"""
@@ -98,6 +90,14 @@ async def get_threat_trends(
     """Get threat trends for the last N days"""
     trends = crud.get_threat_trends(db, days=days)
     return trends
+
+@app.get("/api/threats/{threat_id}", response_model=schemas.ThreatResponse)
+async def get_threat(threat_id: int, db: Session = Depends(get_db)):
+    """Get a specific threat by ID"""
+    threat = crud.get_threat(db, threat_id=threat_id)
+    if not threat:
+        raise HTTPException(status_code=404, detail="Threat not found")
+    return threat
 
 # Indicator endpoints
 @app.post("/api/indicators/collect")
@@ -168,6 +168,28 @@ async def analyze_threat(
     return analysis
 
 # Report generation endpoint
+@app.get("/api/reports", response_model=List[schemas.ReportResponse])
+async def get_reports(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """Get all generated reports"""
+    reports = crud.get_reports(db, skip=skip, limit=limit)
+    return reports
+
+@app.post("/api/reports/generate", response_model=schemas.ReportResponse)
+async def generate_report(
+    report_type: str = "daily",
+    db: Session = Depends(get_db)
+):
+    """Generate a new threat report (daily or weekly)"""
+    if report_type == "weekly":
+        report = crud.generate_weekly_report(db)
+    else:
+        report = crud.generate_daily_report(db)
+    return report
+
 @app.get("/api/reports/daily")
 async def generate_daily_report(
     db: Session = Depends(get_db)

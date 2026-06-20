@@ -46,7 +46,7 @@ class Indicator(Base):
     is_active = Column(Boolean, default=True)
     
     # Additional metadata
-    metadata = Column(JSON, nullable=True)
+    meta_data = Column(JSON, nullable=True)
 
 class Alert(Base):
     __tablename__ = "alert_logs"

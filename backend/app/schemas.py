@@ -42,7 +42,7 @@ class IndicatorBase(BaseModel):
     indicator_value: str
     risk_score: float = 0.0
     source: str
-    metadata: Optional[Dict[str, Any]] = None
+    meta_data: Optional[Dict[str, Any]] = None
 
 class IndicatorCreate(IndicatorBase):
     pass

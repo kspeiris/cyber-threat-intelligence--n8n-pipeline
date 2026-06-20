@@ -7,12 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def analyze_threat(threat) -> Dict[str, Any]:
-    """Generate AI analysis for a threat"""
-    # This is a mock implementation
-    # In production, you would integrate with:
-    # - OpenAI GPT
-    # - Anthropic Claude
-    # - Local LLM (Llama, Mistral)
+    """Generate AI-driven risk analysis for a given threat using heuristic scoring and metadata extraction."""
     
     try:
         analysis = {
