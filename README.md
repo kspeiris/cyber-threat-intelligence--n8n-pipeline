@@ -25,48 +25,86 @@ The collected data is stored in a normalised **PostgreSQL** schema and served th
 
 ## 🏗️ Architecture
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                      n8n Orchestration Engine                │
-│  ┌──────────────┐   ┌────────────┐   ┌──────────────────┐  │
-│  │ Schedule     │──▶│  HTTP      │──▶│  Telegram        │  │
-│  │ Trigger (6h) │   │  Requests  │   │  Notification    │  │
-│  └──────────────┘   └─────┬──────┘   └──────────────────┘  │
-└───────────────────────────┼──────────────────────────────────┘
-                            │ POST /api/threats/collect
-                            ▼
-┌──────────────────────────────────────────────────────────────┐
-│                     FastAPI Backend (Port 8000)              │
-│                                                              │
-│   NVD API Collector ──▶ Threat Parser ──▶ AI Risk Analyser  │
-│   CISA KEV Feed    ──▶ IOC Classifier ──▶ Alert Service     │
-│                                          │                   │
-│                                          ▼                   │
-│                               SQLAlchemy ORM Layer           │
-└─────────────────────────────────┬────────────────────────────┘
-                                  │
-                                  ▼
-                    ┌─────────────────────────┐
-                    │   PostgreSQL Database   │
-                    │                         │
-                    │  • threats              │
-                    │  • indicators           │
-                    │  • alert_logs           │
-                    │  • reports              │
-                    └────────────┬────────────┘
-                                 │ REST API
-                                 ▼
-┌──────────────────────────────────────────────────────────────┐
-│                Streamlit Dashboard (Port 8501)               │
-│                                                              │
-│  📊 Dashboard  🔍 Threats  🎯 IOCs  🔔 Alerts  📋 Reports  │
-│  ─────────────────────────────────────────────────────────  │
-│  Plotly Dark Charts  │  Glassmorphic UI  │  Live Metrics    │
-└──────────────────────────────────────────────────────────────┘
-                                 │
-                    Telegram Bot API (Alerts)
-```
+```mermaid
+flowchart TB
 
+    subgraph N8N["n8n Orchestration Engine"]
+        ST["Schedule Trigger (Every 6 Hours)"]
+        HTTP["HTTP Requests"]
+        TG["Telegram Notification"]
+
+        ST --> HTTP
+        HTTP --> TG
+    end
+
+    HTTP -->|"POST /api/threats/collect"| API
+
+    subgraph FASTAPI["FastAPI Backend (Port 8000)"]
+
+        subgraph COLLECTORS["Threat Collection"]
+            NVD["NVD API Collector"]
+            CISA["CISA KEV Feed Collector"]
+        end
+
+        subgraph PROCESSING["Threat Processing"]
+            PARSER["Threat Parser"]
+            IOC["IOC Classifier"]
+            AI["AI Risk Analyzer"]
+            ALERT["Alert Service"]
+        end
+
+        ORM["SQLAlchemy ORM Layer"]
+
+        NVD --> PARSER
+        CISA --> IOC
+
+        PARSER --> AI
+        IOC --> AI
+        AI --> ALERT
+        ALERT --> ORM
+
+    end
+
+    API["Threat Collection API"] --> NVD
+    API --> CISA
+
+    ORM --> DB
+
+    subgraph DATABASE["PostgreSQL Database"]
+        DB["Database"]
+
+        T1["threats"]
+        T2["indicators"]
+        T3["alert_logs"]
+        T4["reports"]
+
+        DB --- T1
+        DB --- T2
+        DB --- T3
+        DB --- T4
+    end
+
+    DB -->|"REST API"| DASH
+
+    subgraph STREAMLIT["Streamlit Dashboard (Port 8501)"]
+        DASH["Dashboard"]
+
+        D1["📊 Dashboard"]
+        D2["🔍 Threats"]
+        D3["🎯 IOCs"]
+        D4["🔔 Alerts"]
+        D5["📋 Reports"]
+
+        DASH --- D1
+        DASH --- D2
+        DASH --- D3
+        DASH --- D4
+        DASH --- D5
+    end
+
+    TG --> BOT["Telegram Bot API"]
+    ALERT --> BOT
+```
 ---
 
 ## ⚙️ n8n Workflow Automation
