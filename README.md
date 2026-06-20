@@ -135,16 +135,15 @@ The dashboard transcends standard Streamlit limitations through deep CSS injecti
 
 ## 📸 Screenshots
 
-> 📁 Place screenshots in `docs/screenshots/` to populate these sections.
+![Image](images/n1.png)
 
-| Page | Preview |
-|------|---------|
-| 📊 Dashboard | `docs/screenshots/dashboard.png` |
-| 🔍 Threat Management | `docs/screenshots/threats.png` |
-| 🎯 Indicators of Compromise | `docs/screenshots/indicators.png` |
-| 🔔 Alerts | `docs/screenshots/alerts.png` |
-| 📋 Reports | `docs/screenshots/reports.png` |
-| 🤖 AI Analysis | `docs/screenshots/ai_analysis.png` |
+![Image](images/n2.png)
+
+![Image](images/n3.png)
+
+![Image](images/n4.png)
+
+![Image](images/n5.png)
 
 ---
 
